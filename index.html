@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة مالك المنظومة - Admin Suite</title>
+  <link rel="stylesheet" href="c.css">
+</head>
+<body>
+
+  <div class="container">
+    <header class="card header-box">
+      <h2>لوحة تحكم مالك المنظومة</h2>
+      <span id="system-status" class="status-tag">إدارة الاشتراكات والإعلانات</span>
+    </header>
+
+    <!-- أزرار التنقل -->
+    <div class="grid nav-buttons">
+      <button class="btn" onclick="showSection('clients')">إدارة المشتركين</button>
+      <button class="btn btn-secondary" onclick="showSection('requests')">طلبات التجديد</button>
+      <button class="btn btn-success" onclick="showSection('banner')">الشريط الدعائي</button>
+    </div>
+
+    <!-- 1. قسم إدارة المشتركين -->
+    <section id="sec-clients" class="card">
+      <h3>إضافة عميل جديد</h3>
+      <div class="form-grid">
+        <div class="input-group">
+          <label>اسم العميل / التجاري (ثابت):</label>
+          <input type="text" id="client-name" placeholder="مثال: سوبرماركت الأمل">
+        </div>
+        <div class="input-group">
+          <label>كود العميل / الجهاز:</label>
+          <input type="text" id="client-code" placeholder="مثال: CLI-101">
+        </div>
+        <div class="input-group">
+          <label>مدة الاشتراك الأولى:</label>
+          <select id="client-plan">
+            <option value="7">تجريبي (7 أيام)</option>
+            <option value="30">شهر (30 يوم)</option>
+            <option value="90">3 أشهر</option>
+            <option value="180">6 أشهر</option>
+            <option value="365">سنة كاملة</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn submit-btn" onclick="addClient()">إضافة العميل وتفعيل الاشتراك</button>
+
+      <h4>سجل العملاء والمشتركين</h4>
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>كود العميل</th>
+              <th>اسم العميل</th>
+              <th>تاريخ الانتهاء</th>
+              <th>الحالة</th>
+              <th>إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="clients-list"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 2. قسم طلبات التجديد -->
+    <section id="sec-requests" class="card" style="display: none;">
+      <h3>طلبات التجديد الواردة من العملاء</h3>
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>اسم العميل</th>
+              <th>المدة المطلوبة</th>
+              <th>تاريخ الطلب</th>
+              <th>التجديد وتحديد المدة</th>
+            </tr>
+          </thead>
+          <tbody id="requests-list"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. قسم التحكم بالشريط الدعائي -->
+    <section id="sec-banner" class="card" style="display: none;">
+      <h3>إدارة الشريط الدعائي المتحرك</h3>
+      <div class="form-grid">
+        <div class="input-group" style="grid-column: 1 / -1;">
+          <label>نص الرسالة الدعائية:</label>
+          <input type="text" id="banner-text" placeholder="أدخل نص الإعلان أو الرسالة...">
+        </div>
+        <div class="input-group">
+          <label>توجيه الرسالة إلى:</label>
+          <select id="banner-target" onchange="toggleClientDropdown()">
+            <option value="ALL">الجميع (كافة العملاء)</option>
+            <option value="SPECIFIC">عميل محدد</option>
+          </select>
+        </div>
+        <div class="input-group" id="client-select-group" style="display: none;">
+          <label>اختر العميل:</label>
+          <select id="banner-client-select"></select>
+        </div>
+      </div>
+      <button class="btn btn-success submit-btn" onclick="sendBannerMessage()">نشر الرسالة الدعائية</button>
+
+      <h4>الإعلانات النشطة حالياً</h4>
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>المستهدف</th>
+              <th>النص الدعائي</th>
+              <th>التاريخ</th>
+              <th>إجراء</th>
+            </tr>
+          </thead>
+          <tbody id="banners-list"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <script src="j.js"></script>
+</body>
+</html>
