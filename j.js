@@ -1,5 +1,5 @@
 // ==========================================
-// j.js - لوحة تحكم الأدمن (محدثة ومضمونة 100%)
+// j.js - لوحة الأدمن (محدثة لحل مشكلة استجابة العميل)
 // ==========================================
 
 const firebaseConfig = {
@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
   listenToData();
 });
 
-// التنقل بين الأقسام
 function showSection(sectionId) {
   document.getElementById('sec-clients').style.display = sectionId === 'clients' ? 'block' : 'none';
   document.getElementById('sec-requests').style.display = sectionId === 'requests' ? 'block' : 'none';
@@ -34,7 +33,6 @@ function toggleClientDropdown() {
   document.getElementById('client-select-group').style.display = target === 'SPECIFIC' ? 'block' : 'none';
 }
 
-// الاستماع اللحظي لقاعدة البيانات
 function listenToData() {
   db.ref('saas_data').on('value', (snapshot) => {
     const data = snapshot.val() || {};
@@ -55,18 +53,18 @@ function addClient() {
     return;
   }
 
-  const now = new Date();
-  const endDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  const now = Date.now();
+  const endTimestamp = now + (days * 24 * 60 * 60 * 1000);
+  const endDateStr = new Date(endTimestamp).toISOString().split('T')[0];
 
   const clientData = {
     name: name,
     code: code,
-    endDate: endDate.toLocaleDateString('ar-EG'),
-    endTimestamp: endDate.getTime(),
+    endDate: endDateStr,
+    endTimestamp: endTimestamp,
     status: 'active'
   };
 
-  // الحفظ بمفتاح فريد باستخدام الكود نفسه
   db.ref(`saas_data/clients/${code}`).set(clientData)
     .then(() => {
       alert("تمت إضافة العميل وتفعيل الاشتراك بنجاح!");
@@ -93,9 +91,8 @@ function renderClients(clientsObj) {
 
   keys.forEach((code) => {
     const client = clientsObj[code];
-    const isExpired = now > client.endTimestamp;
+    const isExpired = !client.endTimestamp || now > client.endTimestamp;
 
-    // إضافة الخيار إلى القائمة المنسدلة للرسائل
     const opt = document.createElement('option');
     opt.value = client.code;
     opt.textContent = `${client.name} (${client.code})`;
@@ -105,7 +102,7 @@ function renderClients(clientsObj) {
     tr.innerHTML = `
       <td><b>${client.code}</b></td>
       <td>${client.name}</td>
-      <td>${client.endDate}</td>
+      <td>${client.endDate || 'غير محدد'}</td>
       <td>
         <span style="color: ${isExpired ? '#ff4d4d' : '#28a745'}; font-weight: bold;">
           ${isExpired ? 'منتهي' : 'نشط'}
@@ -120,19 +117,24 @@ function renderClients(clientsObj) {
   });
 }
 
-// تمديد اشتراك العميل
+// تمديد اشتراك العميل المباشر
 function extendSubscription(code, addDays) {
   db.ref(`saas_data/clients/${code}`).once('value').then((snap) => {
-    const client = snap.val();
-    if (!client) return;
-
-    const currentEnd = Math.max(Date.now(), client.endTimestamp || 0);
-    const newEnd = new Date(currentEnd + addDays * 24 * 60 * 60 * 1000);
+    const client = snap.val() || {};
+    const now = Date.now();
+    
+    // إذا كان الكود غير موجود أصلاً (إنشاء حساب جديد له)
+    const currentEnd = (client.endTimestamp && client.endTimestamp > now) ? client.endTimestamp : now;
+    const newEndTimestamp = currentEnd + (addDays * 24 * 60 * 60 * 1000);
+    const newEndDateStr = new Date(newEndTimestamp).toISOString().split('T')[0];
 
     db.ref(`saas_data/clients/${code}`).update({
-      endDate: newEnd.toLocaleDateString('ar-EG'),
-      endTimestamp: newEnd.getTime()
-    }).then(() => alert(`تم تمديد اشتراك العميل ${code} بنجاح!`));
+      code: code,
+      name: client.name || 'عميل ' + code,
+      endDate: newEndDateStr,
+      endTimestamp: newEndTimestamp,
+      status: 'active'
+    }).then(() => alert(`تم تفعيل وتمديد اشتراك العميل ${code} بنجاح!`));
   });
 }
 
@@ -162,13 +164,14 @@ function renderRequests(reqObj) {
       <td>${req.planName}</td>
       <td>${req.date}</td>
       <td>
-        <button onclick="approveRequest('${key}', '${req.clientCode}', ${req.days})" style="padding: 4px 8px; background: #28a745; color:#fff; border:none; border-radius:4px; cursor:pointer;">موافقة وتفعيل</button>
+        <button onclick="approveRequest('${key}', '${req.clientCode}', ${req.days || 30})" style="padding: 6px 12px; background: #28a745; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">موافقة وتفعيل</button>
       </td>
     `;
     tbody.appendChild(tr);
   });
 }
 
+// الموافقة وحذف الطلب
 function approveRequest(reqKey, clientCode, days) {
   extendSubscription(clientCode, days);
   db.ref(`saas_data/requests/${reqKey}`).remove();
@@ -197,7 +200,6 @@ function sendBannerMessage() {
   });
 }
 
-// عرض الإعلانات النشطة
 function renderBanners(bannersObj) {
   const tbody = document.getElementById('banners-list');
   tbody.innerHTML = '';
