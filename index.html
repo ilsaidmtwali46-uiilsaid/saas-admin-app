@@ -3,51 +3,190 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة مالك المنظومة - Admin Suite</title>
-  <link rel="stylesheet" href="c.css">
+  <title>Admin Suite - لوحة مالك المنظومة</title>
+  <style>
+    :root {
+      --bg-main: #121212;
+      --bg-card: #1e1e1e;
+      --bg-input: #2a2a2a;
+      --text-main: #ffffff;
+      --text-sub: #a0a0a0;
+      --primary: #007bff;
+      --success: #28a745;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --border: #333333;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      padding: 15px;
+      direction: rtl;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .header-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .header-card h1 {
+      font-size: 22px;
+      margin-bottom: 5px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .nav-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-blue { background-color: #2196F3; }
+    .btn-purple { background-color: #673AB7; }
+    .btn-green { background-color: #4CAF50; }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 15px;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 5px;
+    }
+
+    input[type="text"], select, textarea {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+    }
+
+    input[type="text"]:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      color: #fff;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .btn-primary { background-color: var(--primary); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--text-sub);
+    }
+  </style>
 </head>
 <body>
 
   <div class="container">
-    <header class="card header-box">
-      <h2>لوحة تحكم مالك المنظومة</h2>
-      <span id="system-status" class="status-tag">إدارة الاشتراكات والإعلانات</span>
-    </header>
-
-    <!-- أزرار التنقل -->
-    <div class="grid nav-buttons">
-      <button class="btn" onclick="showSection('clients')">إدارة المشتركين</button>
-      <button class="btn btn-secondary" onclick="showSection('requests')">طلبات التجديد</button>
-      <button class="btn btn-success" onclick="showSection('banner')">الشريط الدعائي</button>
+    
+    <!-- العنوان الرئيسية -->
+    <div class="header-card">
+      <h1>لوحة تحكم مالك المنظومة</h1>
     </div>
 
-    <!-- 1. قسم إدارة المشتركين -->
-    <section id="sec-clients" class="card">
-      <h3>إضافة عميل جديد</h3>
-      <div class="form-grid">
-        <div class="input-group">
+    <!-- أزرار التنقل بين الأقسام -->
+    <div class="nav-tabs">
+      <button class="nav-btn btn-blue" onclick="showSection('clients')">إدارة المشتركين</button>
+      <button class="nav-btn btn-purple" onclick="showSection('requests')">طلبات التجديد</button>
+      <button class="nav-btn btn-green" onclick="showSection('banner')">الشريط الدعائي</button>
+    </div>
+
+    <!-- قسم إدارة المشتركين -->
+    <div id="sec-clients">
+      <div class="card">
+        <h2>إضافة عميل جديد</h2>
+        <div class="form-group">
           <label>اسم العميل / التجاري (ثابت):</label>
           <input type="text" id="client-name" placeholder="مثال: سوبرماركت الأمل">
         </div>
-        <div class="input-group">
+        <div class="form-group">
           <label>كود العميل / الجهاز:</label>
           <input type="text" id="client-code" placeholder="مثال: CLI-101">
         </div>
-        <div class="input-group">
+        <div class="form-group">
           <label>مدة الاشتراك الأولى:</label>
           <select id="client-plan">
             <option value="7">تجريبي (7 أيام)</option>
-            <option value="30">شهر (30 يوم)</option>
+            <option value="30">شهر</option>
             <option value="90">3 أشهر</option>
             <option value="180">6 أشهر</option>
-            <option value="365">سنة كاملة</option>
+            <option value="365">سنة</option>
           </select>
         </div>
+        <button type="button" class="btn btn-primary" onclick="addClient()">إضافة العميل وتفعيل الاشتراك</button>
       </div>
-      <button class="btn submit-btn" onclick="addClient()">إضافة العميل وتفعيل الاشتراك</button>
 
-      <h4>سجل العملاء والمشتركين</h4>
-      <div class="table-box">
+      <div class="card">
+        <h2>سجل العملاء والمشتركين</h2>
         <table>
           <thead>
             <tr>
@@ -58,69 +197,82 @@
               <th>إجراءات</th>
             </tr>
           </thead>
-          <tbody id="clients-list"></tbody>
+          <tbody id="clients-list">
+            <!-- يتم تحميلة ديناميكياً -->
+          </tbody>
         </table>
       </div>
-    </section>
+    </div>
 
-    <!-- 2. قسم طلبات التجديد -->
-    <section id="sec-requests" class="card" style="display: none;">
-      <h3>طلبات التجديد الواردة من العملاء</h3>
-      <div class="table-box">
+    <!-- قسم طلبات التجديد -->
+    <div id="sec-requests" style="display: none;">
+      <div class="card">
+        <h2>طلبات التجديد الواردة من العملاء</h2>
         <table>
           <thead>
             <tr>
               <th>اسم العميل</th>
-              <th>المدة المطلوبة</th>
+              <th>الباقة المطلوبة</th>
               <th>تاريخ الطلب</th>
-              <th>التجديد وتحديد المدة</th>
+              <th>إجراءات</th>
             </tr>
           </thead>
-          <tbody id="requests-list"></tbody>
+          <tbody id="requests-list">
+            <!-- يتم تحميلة ديناميكياً -->
+          </tbody>
         </table>
       </div>
-    </section>
+    </div>
 
-    <!-- 3. قسم التحكم بالشريط الدعائي -->
-    <section id="sec-banner" class="card" style="display: none;">
-      <h3>إدارة الشريط الدعائي المتحرك</h3>
-      <div class="form-grid">
-        <div class="input-group" style="grid-column: 1 / -1;">
-          <label>نص الرسالة الدعائية:</label>
-          <input type="text" id="banner-text" placeholder="أدخل نص الإعلان أو الرسالة...">
+    <!-- قسم الشريط الدعائي -->
+    <div id="sec-banner" style="display: none;">
+      <div class="card">
+        <h2>إرسال إعلان / رسالة دعائية</h2>
+        <div class="form-group">
+          <label>نص الرسالة الإعلانية:</label>
+          <textarea id="banner-text" rows="3" placeholder="اكتب نص الإعلان الذي سيظهر أسفل شاشة العميل..."></textarea>
         </div>
-        <div class="input-group">
+        <div class="form-group">
           <label>توجيه الرسالة إلى:</label>
           <select id="banner-target" onchange="toggleClientDropdown()">
-            <option value="ALL">الجميع (كافة العملاء)</option>
+            <option value="ALL">جميع العملاء</option>
             <option value="SPECIFIC">عميل محدد</option>
           </select>
         </div>
-        <div class="input-group" id="client-select-group" style="display: none;">
+        <div class="form-group" id="client-select-group" style="display: none;">
           <label>اختر العميل:</label>
-          <select id="banner-client-select"></select>
+          <select id="banner-client-select">
+            <!-- يتم تحميلة ديناميكياً -->
+          </select>
         </div>
+        <button type="button" class="btn btn-primary" onclick="sendBannerMessage()">نشر الرسالة الدعائية</button>
       </div>
-      <button class="btn btn-success submit-btn" onclick="sendBannerMessage()">نشر الرسالة الدعائية</button>
 
-      <h4>الإعلانات النشطة حالياً</h4>
-      <div class="table-box">
+      <div class="card">
+        <h2>الإعلانات النشطة حالياً</h2>
         <table>
           <thead>
             <tr>
               <th>المستهدف</th>
-              <th>النص الدعائي</th>
+              <th>نص الرسالة</th>
               <th>التاريخ</th>
-              <th>إجراء</th>
+              <th>إجراءات</th>
             </tr>
           </thead>
-          <tbody id="banners-list"></tbody>
+          <tbody id="banners-list">
+            <!-- يتم تحميلة ديناميكياً -->
+          </tbody>
         </table>
       </div>
-    </section>
+    </div>
 
   </div>
 
+  <!-- 1. استدعاء مكتبات Firebase أولاً من شبكة CDN (الإصدار v8) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- 2. استدعاء ملف الجافاسكربت الخاص بالنظام -->
   <script src="j.js"></script>
 </body>
 </html>
