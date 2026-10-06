@@ -1,17 +1,54 @@
 // ==========================================
-// j.js - لوحة تحكم الأدمن والاشتراكات
+// j.js - الأدمن مع ربط Firebase Realtime DB
 // ==========================================
 
-let clients = JSON.parse(localStorage.getItem('obs_admin_clients')) || [];
-let requests = JSON.parse(localStorage.getItem('obs_admin_requests')) || [];
-let banners = JSON.parse(localStorage.getItem('obs_admin_banners')) || [];
+// إعدادات Firebase (استبدل القيم ببيانات مشروعك في Firebase)
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// تهيئة Firebase
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
+
+let clients = [];
+let requests = [];
+let banners = [];
 
 document.addEventListener('DOMContentLoaded', () => {
-  renderClients();
-  renderRequests();
-  renderBanners();
-  updateClientDropdown();
+  listenToDatabase();
 });
+
+function listenToDatabase() {
+  // الاستماع المباشر للتغيرات من السحابة
+  db.ref('saas_data').on('value', (snapshot) => {
+    const data = snapshot.val() || {};
+    clients = data.clients || [];
+    requests = data.requests || [];
+    banners = data.banners || [];
+
+    renderClients();
+    renderRequests();
+    renderBanners();
+    updateClientDropdown();
+  });
+}
+
+function syncToCloud() {
+  db.ref('saas_data').set({
+    clients: clients,
+    requests: requests,
+    banners: banners
+  });
+}
 
 function showSection(sec) {
   document.getElementById('sec-clients').style.display = 'none';
@@ -23,7 +60,7 @@ function showSection(sec) {
   if (sec === 'banner') document.getElementById('sec-banner').style.display = 'block';
 }
 
-// 1. إضافة وتجديد العميل
+// إضافة وتجديد العميل
 function addClient() {
   const name = document.getElementById('client-name').value.trim();
   const code = document.getElementById('client-code').value.trim();
@@ -41,17 +78,14 @@ function addClient() {
   const clientData = {
     id: Date.now(),
     code: code,
-    name: name, // الاسم مثبت ولا يتغير
+    name: name,
     endDate: endDate.toLocaleDateString('ar-EG'),
     endTimestamp: endDate.getTime(),
     status: 'نشط'
   };
 
   clients.push(clientData);
-  localStorage.setItem('obs_admin_clients', JSON.stringify(clients));
-  
-  renderClients();
-  updateClientDropdown();
+  syncToCloud();
 
   document.getElementById('client-name').value = '';
   document.getElementById('client-code').value = '';
@@ -69,17 +103,14 @@ function renewClientSubscription(clientId, addDays) {
   client.endDate = currentEnd.toLocaleDateString('ar-EG');
   client.status = 'نشط';
 
-  localStorage.setItem('obs_admin_clients', JSON.stringify(clients));
-  renderClients();
+  syncToCloud();
   alert(`تم تجديد الاشتراك للعميل ${client.name} حتى ${client.endDate}`);
 }
 
 function deleteClient(clientId) {
   if (confirm('هل أنت متأكد من حذف هذا العميل؟')) {
     clients = clients.filter(c => c.id !== clientId);
-    localStorage.setItem('obs_admin_clients', JSON.stringify(clients));
-    renderClients();
-    updateClientDropdown();
+    syncToCloud();
   }
 }
 
@@ -114,7 +145,6 @@ function renderClients() {
   });
 }
 
-// 2. طلبات التجديد
 function renderRequests() {
   const tbody = document.getElementById('requests-list');
   tbody.innerHTML = '';
@@ -144,20 +174,15 @@ function approveRequest(index) {
 
   if (client) {
     renewClientSubscription(client.id, req.days);
-  } else {
-    alert('لم يتم العثور على سجل للعميل!');
   }
 
   requests.splice(index, 1);
-  localStorage.setItem('obs_admin_requests', JSON.stringify(requests));
-  renderRequests();
+  syncToCloud();
 }
 
-// 3. التحكم بالشريط الدعائي
 function toggleClientDropdown() {
   const target = document.getElementById('banner-target').value;
-  const group = document.getElementById('client-select-group');
-  group.style.display = (target === 'SPECIFIC') ? 'flex' : 'none';
+  document.getElementById('client-select-group').style.display = (target === 'SPECIFIC') ? 'flex' : 'none';
 }
 
 function updateClientDropdown() {
@@ -196,18 +221,16 @@ function sendBannerMessage() {
     date: new Date().toLocaleDateString('ar-EG')
   };
 
-  banners.unshift(newBanner); // إضافة الأحدث في البداية
-  localStorage.setItem('obs_admin_banners', JSON.stringify(banners));
+  banners.unshift(newBanner);
+  syncToCloud();
 
-  renderBanners();
   document.getElementById('banner-text').value = '';
   alert('تم نشر الرسالة الدعائية بنجاح!');
 }
 
 function deleteBanner(id) {
   banners = banners.filter(b => b.id !== id);
-  localStorage.setItem('obs_admin_banners', JSON.stringify(banners));
-  renderBanners();
+  syncToCloud();
 }
 
 function renderBanners() {
