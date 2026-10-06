@@ -1,22 +1,23 @@
 // ==========================================
-// j.js - الأدمن مع ربط Firebase Realtime DB
+// j.js - تطبيق الأدمن (Omni Owner Suite)
 // ==========================================
 
-// إعدادات Firebase (استبدل القيم ببيانات مشروعك في Firebase)
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCY-sv8z7YIDxUMF47ie2ZXi6xxykEYvWs",
+  authDomain: "cashier-app-9e18a.firebaseapp.com",
+  databaseURL: "https://cashier-app-9e18a-default-rtdb.firebaseio.com",
+  projectId: "cashier-app-9e18a",
+  storageBucket: "cashier-app-9e18a.firebasestorage.app",
+  messagingSenderId: "337011631813",
+  appId: "1:337011631813:web:7ce04255b1a8abc1dbb2ac",
+  measurementId: "G-6RRGZRPW24"
 };
 
 // تهيئة Firebase
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
+// ربط مباشر برابط قاعدة البيانات
 const db = firebase.database();
 
 let clients = [];
@@ -25,10 +26,16 @@ let banners = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   listenToDatabase();
+  
+  // ربط زر الإضافة بالدالة تلقائياً لتفادي مشاكل HTML
+  const addBtn = document.querySelector('.btn-primary, button[onclick="addClient()"]');
+  if(addBtn) {
+    addBtn.onclick = addClient;
+  }
 });
 
+// الاستماع المباشر للبيانات من السحابة
 function listenToDatabase() {
-  // الاستماع المباشر للتغيرات من السحابة
   db.ref('saas_data').on('value', (snapshot) => {
     const data = snapshot.val() || {};
     clients = data.clients || [];
@@ -39,32 +46,46 @@ function listenToDatabase() {
     renderRequests();
     renderBanners();
     updateClientDropdown();
+  }, (error) => {
+    alert("خطأ في الاتصال بقاعدة البيانات: " + error.message);
   });
 }
 
+// حفظ البيانات المحدثة في السحابة
 function syncToCloud() {
   db.ref('saas_data').set({
     clients: clients,
     requests: requests,
     banners: banners
+  }).then(() => {
+    console.log("تم الحفظ في السحابة بنجاح!");
+  }).catch((err) => {
+    alert("فشل الحفظ: " + err.message);
   });
 }
 
 function showSection(sec) {
-  document.getElementById('sec-clients').style.display = 'none';
-  document.getElementById('sec-requests').style.display = 'none';
-  document.getElementById('sec-banner').style.display = 'none';
+  const sc = document.getElementById('sec-clients');
+  const sr = document.getElementById('sec-requests');
+  const sb = document.getElementById('sec-banner');
+  if(sc) sc.style.display = 'none';
+  if(sr) sr.style.display = 'none';
+  if(sb) sb.style.display = 'none';
 
-  if (sec === 'clients') document.getElementById('sec-clients').style.display = 'block';
-  if (sec === 'requests') document.getElementById('sec-requests').style.display = 'block';
-  if (sec === 'banner') document.getElementById('sec-banner').style.display = 'block';
+  if (sec === 'clients' && sc) sc.style.display = 'block';
+  if (sec === 'requests' && sr) sr.style.display = 'block';
+  if (sec === 'banner' && sb) sb.style.display = 'block';
 }
 
-// إضافة وتجديد العميل
+// إضافة عميل جديد وتفعيل اشتراكه
 function addClient() {
-  const name = document.getElementById('client-name').value.trim();
-  const code = document.getElementById('client-code').value.trim();
-  const days = parseInt(document.getElementById('client-plan').value);
+  const nameInput = document.getElementById('client-name') || document.querySelectorAll('input[type="text"]')[0];
+  const codeInput = document.getElementById('client-code') || document.querySelectorAll('input[type="text"]')[1];
+  const planSelect = document.getElementById('client-plan') || document.querySelector('select');
+
+  const name = nameInput ? nameInput.value.trim() : '';
+  const code = codeInput ? codeInput.value.trim() : '';
+  const days = planSelect ? parseInt(planSelect.value) || 7 : 7;
 
   if (!name || !code) {
     alert('يرجى كتابة اسم العميل وكود الجهاز!');
@@ -87,9 +108,9 @@ function addClient() {
   clients.push(clientData);
   syncToCloud();
 
-  document.getElementById('client-name').value = '';
-  document.getElementById('client-code').value = '';
-  alert('تمت إضافة العميل وتفعيل اشتراكه بنجاح!');
+  if(nameInput) nameInput.value = '';
+  if(codeInput) codeInput.value = '';
+  alert('تمت إضافة العميل بنجاح ورُفعت البيانات إلى السحابة!');
 }
 
 function renewClientSubscription(clientId, addDays) {
@@ -115,13 +136,14 @@ function deleteClient(clientId) {
 }
 
 function renderClients() {
-  const tbody = document.getElementById('clients-list');
+  const tbody = document.getElementById('clients-list') || document.querySelector('tbody');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
   clients.forEach(c => {
     const isExpired = Date.now() > c.endTimestamp;
     const statusText = isExpired ? 'منتهي' : 'نشط';
-    const statusColor = isExpired ? 'color: var(--danger)' : 'color: var(--success)';
+    const statusColor = isExpired ? 'color: red' : 'color: green';
 
     const row = document.createElement('tr');
     row.innerHTML = `
@@ -138,7 +160,7 @@ function renderClients() {
           <option value="180">6 أشهر</option>
           <option value="365">سنة</option>
         </select>
-        <button class="btn btn-danger" style="padding:2px 6px; font-size:11px;" onclick="deleteClient(${c.id})">حذف</button>
+        <button style="padding:2px 6px; font-size:11px; background:red; color:white; border:none; border-radius:3px;" onclick="deleteClient(${c.id})">حذف</button>
       </td>
     `;
     tbody.appendChild(row);
@@ -147,6 +169,7 @@ function renderClients() {
 
 function renderRequests() {
   const tbody = document.getElementById('requests-list');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
   if (requests.length === 0) {
@@ -161,7 +184,7 @@ function renderRequests() {
       <td>${req.planName}</td>
       <td>${req.date}</td>
       <td>
-        <button class="btn btn-success" style="padding:2px 8px; font-size:12px;" onclick="approveRequest(${idx})">تأكيد التجديد</button>
+        <button style="padding:2px 8px; font-size:12px; background:green; color:white; border:none;" onclick="approveRequest(${idx})">تأكيد التجديد</button>
       </td>
     `;
     tbody.appendChild(row);
@@ -181,12 +204,14 @@ function approveRequest(index) {
 }
 
 function toggleClientDropdown() {
-  const target = document.getElementById('banner-target').value;
-  document.getElementById('client-select-group').style.display = (target === 'SPECIFIC') ? 'flex' : 'none';
+  const target = document.getElementById('banner-target')?.value;
+  const grp = document.getElementById('client-select-group');
+  if(grp) grp.style.display = (target === 'SPECIFIC') ? 'flex' : 'none';
 }
 
 function updateClientDropdown() {
   const select = document.getElementById('banner-client-select');
+  if (!select) return;
   select.innerHTML = '';
   clients.forEach(c => {
     const opt = document.createElement('option');
@@ -197,9 +222,13 @@ function updateClientDropdown() {
 }
 
 function sendBannerMessage() {
-  const text = document.getElementById('banner-text').value.trim();
-  const target = document.getElementById('banner-target').value;
-  const clientCode = document.getElementById('banner-client-select').value;
+  const textInput = document.getElementById('banner-text');
+  const targetSelect = document.getElementById('banner-target');
+  const clientSelect = document.getElementById('banner-client-select');
+
+  const text = textInput ? textInput.value.trim() : '';
+  const target = targetSelect ? targetSelect.value : 'ALL';
+  const clientCode = clientSelect ? clientSelect.value : 'ALL';
 
   if (!text) {
     alert('يرجى إدخال نص الرسالة الدعائية!');
@@ -224,7 +253,7 @@ function sendBannerMessage() {
   banners.unshift(newBanner);
   syncToCloud();
 
-  document.getElementById('banner-text').value = '';
+  if(textInput) textInput.value = '';
   alert('تم نشر الرسالة الدعائية بنجاح!');
 }
 
@@ -235,6 +264,7 @@ function deleteBanner(id) {
 
 function renderBanners() {
   const tbody = document.getElementById('banners-list');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
   banners.forEach(b => {
@@ -243,7 +273,7 @@ function renderBanners() {
       <td><strong>${b.targetName}</strong></td>
       <td>${b.text}</td>
       <td>${b.date}</td>
-      <td><button class="btn btn-danger" style="padding:2px 6px; font-size:11px;" onclick="deleteBanner(${b.id})">حذف</button></td>
+      <td><button style="padding:2px 6px; font-size:11px; background:red; color:white; border:none;" onclick="deleteBanner(${b.id})">حذف</button></td>
     `;
     tbody.appendChild(row);
   });
