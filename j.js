@@ -1,5 +1,5 @@
 // ==========================================
-// j.js - لوحة الأدمن (محدثة لحل مشكلة استجابة العميل)
+// j.js - لوحة التحكم للأدمن (مصحح بالكامل)
 // ==========================================
 
 const firebaseConfig = {
@@ -42,7 +42,7 @@ function listenToData() {
   });
 }
 
-// 1. إضافة عميل جديد
+// 1. إضافة عميل جديد بدون تكرار
 function addClient() {
   const name = document.getElementById('client-name').value.trim();
   const code = document.getElementById('client-code').value.trim().toUpperCase();
@@ -65,13 +65,14 @@ function addClient() {
     status: 'active'
   };
 
+  // استخدام set برقم الكود لمنع التكرار
   db.ref(`saas_data/clients/${code}`).set(clientData)
     .then(() => {
-      alert("تمت إضافة العميل وتفعيل الاشتراك بنجاح!");
+      alert("تم حفظ وتفعيل العميل بنجاح!");
       document.getElementById('client-name').value = '';
       document.getElementById('client-code').value = '';
     })
-    .catch((err) => alert("خطأ في الإضافة: " + err.message));
+    .catch((err) => alert("حدث خطأ: " + err.message));
 }
 
 // عرض قائمة العملاء
@@ -117,13 +118,12 @@ function renderClients(clientsObj) {
   });
 }
 
-// تمديد اشتراك العميل المباشر
+// تمديد اشتراك العميل
 function extendSubscription(code, addDays) {
   db.ref(`saas_data/clients/${code}`).once('value').then((snap) => {
     const client = snap.val() || {};
     const now = Date.now();
     
-    // إذا كان الكود غير موجود أصلاً (إنشاء حساب جديد له)
     const currentEnd = (client.endTimestamp && client.endTimestamp > now) ? client.endTimestamp : now;
     const newEndTimestamp = currentEnd + (addDays * 24 * 60 * 60 * 1000);
     const newEndDateStr = new Date(newEndTimestamp).toISOString().split('T')[0];
@@ -134,18 +134,18 @@ function extendSubscription(code, addDays) {
       endDate: newEndDateStr,
       endTimestamp: newEndTimestamp,
       status: 'active'
-    }).then(() => alert(`تم تفعيل وتمديد اشتراك العميل ${code} بنجاح!`));
+    }).then(() => alert(`تم تمديد اشتراك العميل ${code} بنجاح!`));
   });
 }
 
-// حذف عميل
+// حذف العميل المكرر
 function deleteClient(code) {
-  if (confirm(`هل أنت تأكد من حذف العميل ${code}؟`)) {
+  if (confirm(`هل أنت متأكد من حذف العميل ${code}؟`)) {
     db.ref(`saas_data/clients/${code}`).remove();
   }
 }
 
-// 2. عرض طلبات التجديد
+// عرض طلبات التجديد
 function renderRequests(reqObj) {
   const tbody = document.getElementById('requests-list');
   tbody.innerHTML = '';
@@ -171,13 +171,12 @@ function renderRequests(reqObj) {
   });
 }
 
-// الموافقة وحذف الطلب
 function approveRequest(reqKey, clientCode, days) {
   extendSubscription(clientCode, days);
   db.ref(`saas_data/requests/${reqKey}`).remove();
 }
 
-// 3. نشر الرسائل الدعائية
+// الإعلانات
 function sendBannerMessage() {
   const text = document.getElementById('banner-text').value.trim();
   const target = document.getElementById('banner-target').value;
